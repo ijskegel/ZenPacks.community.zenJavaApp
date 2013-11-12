@@ -9,7 +9,7 @@ class JavaAppScan():
     '''
     jarFile = "%s/bin/cmdline-jmxclient-0.10.3.jar" % os.path.dirname(os.path.realpath(__file__))
     timeout = 30
-    
+
     def __init__(self, device, ipaddr, portrange, username=None, password=None, maxage=43200, usingCache=False):
         self.device = device
         self.ipaddr = ipaddr
@@ -27,7 +27,7 @@ class JavaAppScan():
         """
         with open(self.cachefile, 'rb') as fp:
             self.portdict = pickle.load(fp)
-        
+
     def writeCache(self):
         """
             write dictionary to cache
@@ -61,7 +61,7 @@ class JavaAppScan():
             for port in self.portdict.keys():
                 self.testPort(port)
             self.writeCache()
-            
+
     def testPort(self,port):
         """
             test whether query output is from JMX protocol
@@ -78,14 +78,14 @@ class JavaAppScan():
                 if re.search(a,line) != None :
                     self.portdict[port]['isJmx'] = True
                     self.portdict[port]['useAuth'] = True
-                    
+
         if self.portdict[port]['isJmx'] == True and self.portdict[port]['useAuth'] == True:
             auth = "%s:%s" %(self.username, self.password)
             lines = self.jmxQuery(port, auth)
             for line in lines:
                 if re.search('java\.lang:type=Memory',line) != None :
                     self.portdict[port]['validAuth'] = True
-                    
+
     def getExecOutput(self,args,timeout=5):
         """
         """
@@ -104,7 +104,7 @@ class JavaAppScan():
         else:
             timed_out = False
         try:
-            lines = output.communicate()[0].split("\n")  
+            lines = output.communicate()[0].split("\n")
         except:
             pass
         return lines
@@ -113,7 +113,7 @@ class JavaAppScan():
         """
             return list of open ports within range
         """
-        args = [zenPath('libexec', 'nmap'),'-sS','-p',self.portrange,self.ipaddr]
+        args = [zenPath('bin', 'nmap'),'-sS','-p',self.portrange,self.ipaddr]
         lines = self.getExecOutput(args,self.timeout)
         for line in lines:
             info = line.split()
@@ -122,7 +122,7 @@ class JavaAppScan():
                 port = port.split('/')[0]
                 if state == "open":
                     self.portdict[port] = self.getInfo()
-    
+
     def getInfo(self):
         info = {
                 'isJmx': False,
@@ -137,4 +137,4 @@ class JavaAppScan():
         """
         deststring = '%s:%s' % (self.device,str(port))
         args = ['/usr/bin/java','-jar',self.jarFile,auth,deststring,mbean,attribute]
-        return self.getExecOutput(args) 
+        return self.getExecOutput(args)
